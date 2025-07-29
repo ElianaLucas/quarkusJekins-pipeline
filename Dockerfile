@@ -1,7 +1,10 @@
-FROM jenkins/jenkins:lts
+FROM eclipse-temurin:17-jdk AS build
+WORKDIR /app
+COPY . .
+RUN ./mvnw clean package -DskipTests
 
-USER root
-
-RUN apt-get update && apt-get install -y docker.io && rm -rf /var/lib/apt/lists/*
-
-USER jenkins
+FROM eclipse-temurin:17-jre
+WORKDIR /app
+COPY --from=build /app/target/*-runner.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]
