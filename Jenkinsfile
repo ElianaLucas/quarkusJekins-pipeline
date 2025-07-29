@@ -1,33 +1,48 @@
 pipeline {
     agent any
+
     environment {
         DOCKER_IMAGE = 'quarkusjenkins-app'
     }
+
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/ElianaLucas/quarkusJekins-pipeline.git'
+                // Hacer checkout explicito de la rama main
+                git branch: 'main', url: 'https://github.com/ElianaLucas/quarkusJekins-pipeline.git'
             }
         }
+
         stage('Build Maven') {
             steps {
-                bat 'mvn clean package -DskipTests'
+                // Comando para Windows para construir con Maven, sin test para acelerar
+                bat 'mvn clean install -DskipTests'
             }
         }
+
         stage('Build Docker Image') {
             steps {
+                // Construir la imagen Docker en Windows (usa variables con %VARIABLE%)
                 bat 'docker build -t %DOCKER_IMAGE% .'
             }
         }
+
         stage('Run Docker Container') {
             steps {
-                bat 'docker run -d -p 8080:8080 --name quarkus-container %DOCKER_IMAGE%'
+                // Ejecutar el contenedor con el puerto 8080
+                bat '''
+                docker stop quarkus-container || echo No estaba corriendo
+                docker rm quarkus-container || echo No estaba removido
+                docker run -d -p 8080:8080 --name quarkus-container %DOCKER_IMAGE%
+                '''
             }
         }
-        stage('Clean Up') {
+
+        stage('Clean Up (opcional)') {
             steps {
-                bat 'docker rm -f quarkus-container || exit 0'
-                bat 'docker rmi %DOCKER_IMAGE% || exit 0'
+                script {
+                    echo "Puedes agregar aquí pasos de limpieza si es necesario."
+                }
             }
         }
     }
