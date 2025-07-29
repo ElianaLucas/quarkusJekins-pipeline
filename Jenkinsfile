@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/ElianaLucas/quarkusJekins-pipeline.git' 
+                git branch: 'main', url: 'https://github.com/ElianaLucas/quarkusJekins-pipeline.git'
             }
         }
 
@@ -32,9 +32,7 @@ pipeline {
 
         stage('Clean Up (opcional)') {
             steps {
-                script {
-                    echo "Puedes agregar limpieza si es necesario"
-                }
+                echo "Puedes agregar limpieza si es necesario, como detener contenedores antiguos o eliminar imágenes"
             }
         }
     }
