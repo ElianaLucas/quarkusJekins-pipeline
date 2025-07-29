@@ -32,7 +32,7 @@ pipeline {
                 bat '''
                 docker stop quarkus-container || echo No estaba corriendo
                 docker rm quarkus-container || echo No estaba removido
-                docker run -d -p 8080:8080 --name quarkus-container %DOCKER_IMAGE%
+                docker run -d -p 8081:8080 --name quarkus-container %DOCKER_IMAGE%
                 '''
             }
         }
