@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/ElianaLucas/azure-appservice-tf.git' // o tu nuevo repo
+                git 'https://github.com/ElianaLucas/quarkusJekins-pipeline.git' 
             }
         }
 
