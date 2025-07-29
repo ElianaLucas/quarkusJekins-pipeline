@@ -65,3 +65,101 @@ Easily start your REST Web Services
 Monitor your application's health using SmallRye Health
 
 [Related guide section...](https://quarkus.io/guides/smallrye-health)
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////
+Quarkus Jenkins y Despliegue en Azure - Taller Práctico
+Este repositorio contiene la práctica para automatizar la construcción y despliegue de una aplicación Quarkus usando Jenkins, Docker y Azure App Service.
+
+ETAPA 1: Jenkins + Docker (Local)
+Paso 1: Instalar Jenkins con Docker
+bash
+Copiar
+Editar
+docker run -d --name jenkinslocal -p 8080:8080 -p 50000:50000 jenkins/jenkins
+docker exec jenkinslocal cat /var/jenkins_home/secrets/initialAdminPassword
+Ingresa a http://localhost:8080 con la contraseña obtenida.
+
+Instala plugins sugeridos.
+
+Crea usuario administrador.
+
+Paso 2: Crear Jenkinsfile y Pipeline
+Crear un pipeline que:
+
+Clone el repo Quarkus.
+
+Compile con Maven: ./mvnw clean package.
+
+Construya imagen Docker con Dockerfile.
+
+Ejecute contenedor localmente en puerto 8081.
+
+Comandos Docker para Quarkus local
+bash
+Copiar
+Editar
+docker build -t quarkusjenkins-app .
+docker run -d -p 8081:8080 --name quarkus-container quarkusjenkins-app
+Verificar endpoints de salud Quarkus
+http://localhost:8081/q/live
+
+http://localhost:8081/q/ready
+
+http://localhost:8081/q/started
+
+ETAPA 2: Despliegue en Azure App Service con Docker
+Pre-requisitos
+Tener Azure CLI instalado y logueado (az login).
+
+Imagen Docker subida a Docker Hub.
+
+Paso 1: Subir imagen Docker a Docker Hub
+bash
+Copiar
+Editar
+docker login
+docker tag quarkusjenkins-app eliana2004/quarkus-app:latest
+docker push eliana2004/quarkus-app:latest
+Paso 2: Crear recursos en Azure
+bash
+Copiar
+Editar
+az group create --name quarkus-group --location eastus
+
+az appservice plan create --name quarkus-plan --resource-group quarkus-group --is-linux --sku B1
+
+# Si da error de namespace ejecutar:
+az provider register --namespace Microsoft.Web
+Paso 3: Crear Web App con contenedor Docker
+bash
+Copiar
+Editar
+az webapp create --resource-group quarkus-group --plan quarkus-plan --name quarkusjekinsapp --deployment-container-image-name eliana2004/quarkus-app:latest
+Paso 4: Obtener URL de la app y abrir en navegador
+bash
+Copiar
+Editar
+az webapp show --resource-group quarkus-group --name quarkusjekinsapp --query defaultHostName -o tsv
+# Salida: quarkusjekinsapp.azurewebsites.net
+URL final:
+https://quarkusjekinsapp.azurewebsites.net
+
+Paso 5: Actualizar imagen y reiniciar app
+bash
+Copiar
+Editar
+docker build -t eliana2004/quarkus-app:latest .
+docker push eliana2004/quarkus-app:latest
+az webapp restart --resource-group quarkus-group --name quarkusjekinsapp
+Notas importantes
+Configura el puerto en Quarkus para que use la variable PORT:
+
+properties
+Copiar
+Editar
+quarkus.http.port=${PORT:8080}
+Azure App Service expone el puerto 80 por defecto, asegúrate que Quarkus use ese puerto o configura WEBSITES_PORT en Azure.
+
+Repositorio GitHub
+https://github.com/ElianaLucas/quarkusJekins-pipeline.git
