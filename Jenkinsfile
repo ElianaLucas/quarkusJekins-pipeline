@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+     gent { label 'windows' }
 
     environment {
         DOCKER_IMAGE = 'quarkusjenkins-app'
